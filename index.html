@@ -175,8 +175,35 @@ input:focus{outline:none;border-color:var(--red)}
 .rbtn.sel-draw{background:#fff8e6;border-color:#d48806;color:#7c5200}
 .rbtn.sel-end{background:#fff1f0;border-color:#cf1322;color:#820014}
 
-/* Zimo box */
-.zimo-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem;padding:12px;background:#f9f9f9;border-radius:10px;border:1px solid #eee}
+/* Diamond field */
+.field-wrap{position:relative;width:300px;height:300px;margin:0 auto}
+.field-base{position:absolute;width:62px;height:62px;transform:rotate(45deg);border:2.5px solid #c8c8c8;background:#fff;cursor:pointer;transition:background .12s,border-color .12s;z-index:3}
+.field-bi{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-45deg);gap:2px;pointer-events:none}
+.field-wl{font-size:11px;color:#999;line-height:1}
+.field-nl{font-size:15px;font-weight:500;line-height:1.2;color:#1a1a1a}
+.field-rl{font-size:11px;font-weight:500;line-height:1;min-height:14px}
+.field-base.f-idle{background:#fff;border-color:#c8c8c8}
+.field-base.f-dealer{background:#fff9e6;border-color:#d48806}
+.field-base.f-winner{background:#eaf3de;border-color:#3B6D11}
+.field-base.f-shooter{background:#fff1f0;border-color:#cf1322}
+.field-base.f-dealer .field-wl,.field-base.f-dealer .field-nl{color:#7c5200}
+.field-base.f-dealer .field-rl{color:#d48806}
+.field-base.f-winner .field-wl,.field-base.f-winner .field-nl{color:#27500A}
+.field-base.f-winner .field-rl{color:#3B6D11}
+.field-base.f-shooter .field-wl,.field-base.f-shooter .field-nl{color:#820014}
+.field-base.f-shooter .field-rl{color:#cf1322}
+.field-mound{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;background:#fff;border-radius:50%;width:86px;height:86px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px solid #e0e0e0}
+.field-mr{font-size:14px;font-weight:700;color:#c0392b;line-height:1.3}
+.field-mc{font-size:11px;color:#d48806;font-weight:500;line-height:1.3}
+.field-mh{font-size:11px;color:#999;line-height:1.3;margin-top:1px}
+
+/* Base rate presets */
+.rate-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.75rem}
+.rate-btn{padding:10px 6px;border-radius:8px;border:1.5px solid #ddd;font-size:13px;cursor:pointer;text-align:center;background:#fff;color:#333;transition:all .12s;line-height:1.4}
+.rate-btn .rsub{font-size:11px;color:#999;display:block;margin-top:2px}
+.rate-btn.sel{background:#fff7f7;border-color:#c0392b;color:#c0392b}
+.rate-btn.sel .rsub{color:#c0392b;opacity:.7}
+.rate-btn:hover:not(.sel){background:#f9f9f9}
 .zimo-lbl{font-size:12px;color:#888;margin-bottom:4px;grid-column:1/-1}
 .zimo-result{grid-column:1/-1;margin-top:2px;font-size:13px;font-weight:600;color:#27500A;background:#eaf3de;border-radius:8px;padding:6px 12px;text-align:center}
 
@@ -315,12 +342,24 @@ input:focus{outline:none;border-color:var(--red)}
         <div id="game-no-players" class="notice" style="display:none">請先新增至少 4 位玩家</div>
         <span class="lbl">日期</span>
         <input type="date" id="gameDate" style="max-width:200px">
-        <span class="lbl">底金（每底，元）</span>
-        <input type="number" id="gameBase" placeholder="例：50" min="1" style="max-width:130px">
-        <span class="lbl">台金（每台，元）</span>
-        <input type="number" id="gameTai" placeholder="例：50" min="1" style="max-width:130px">
+        <span class="lbl">底金 / 台金（元）</span>
+        <div class="rate-presets">
+          <div class="rate-btn" id="rp-0" onclick="selectRate(100,20)">100 / 20<span class="rsub">底100 台20</span></div>
+          <div class="rate-btn" id="rp-1" onclick="selectRate(30,10)">30 / 10<span class="rsub">底30 台10</span></div>
+          <div class="rate-btn" id="rp-2" onclick="selectRate(0,0)">自訂<span class="rsub">手動輸入</span></div>
+        </div>
+        <div id="custom-rate" style="display:none">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:.5rem">
+            <span style="font-size:13px;color:#666;white-space:nowrap">底金</span>
+            <input type="number" id="gameBase" placeholder="例：50" min="1" style="max-width:100px">
+            <span style="font-size:13px;color:#666;white-space:nowrap">台金</span>
+            <input type="number" id="gameTai" placeholder="例：50" min="1" style="max-width:100px">
+          </div>
+        </div>
+        <input type="hidden" id="gameBaseHidden" value="">
+        <input type="hidden" id="gameTaiHidden" value="">
         <span class="lbl">選擇出場玩家（點選 4 位，依序為東南西北家）</span>
-        <div id="gamePlayers" class="sgrid" style="margin-bottom:1rem"></div>
+        <div id="gamePlayers" class="sgrid" style="margin-bottom:.5rem"></div>
         <div style="font-size:12px;color:#999;margin-bottom:1rem">第一位選擇者為東家（莊家），依序排列座位</div>
         <button class="btn red" onclick="startSession()">開始這局</button>
       </div>
@@ -330,40 +369,47 @@ input:focus{outline:none;border-color:var(--red)}
     <div id="tab-play" class="sec">
       <div id="play-none" class="empty">尚未開始局，請先至「開新局」設定</div>
       <div id="play-main" style="display:none">
-        <div class="wind-bar">
-          <div>
-            <div class="wbadge" id="windBadge">東風東</div>
-            <div style="font-size:13px;color:#888;margin-top:2px" id="windDetail"></div>
+
+        <div class="card" style="padding:1rem">
+          <div id="field-wrap" class="field-wrap">
+            <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1" viewBox="0 0 300 300">
+              <polygon points="150,18 282,150 150,282 18,150" fill="none" stroke="#ddd" stroke-width="1.5"/>
+            </svg>
+            <div class="field-base f-idle" id="fb-S" style="top:18px;left:119px" onclick="fieldClick('S')">
+              <div class="field-bi"><div class="field-wl">南風</div><div class="field-nl" id="fn-S"></div><div class="field-rl" id="fr-S"></div></div>
+            </div>
+            <div class="field-base f-idle" id="fb-E" style="top:119px;left:220px" onclick="fieldClick('E')">
+              <div class="field-bi"><div class="field-wl">東風</div><div class="field-nl" id="fn-E"></div><div class="field-rl" id="fr-E"></div></div>
+            </div>
+            <div class="field-base f-idle" id="fb-N" style="top:220px;left:119px" onclick="fieldClick('N')">
+              <div class="field-bi"><div class="field-wl">北風</div><div class="field-nl" id="fn-N"></div><div class="field-rl" id="fr-N"></div></div>
+            </div>
+            <div class="field-base f-idle" id="fb-W" style="top:119px;left:18px" onclick="fieldClick('W')">
+              <div class="field-bi"><div class="field-wl">西風</div><div class="field-nl" id="fn-W"></div><div class="field-rl" id="fr-W"></div></div>
+            </div>
+            <div class="field-mound">
+              <div class="field-mr" id="fm-round"></div>
+              <div class="field-mc" id="fm-cont"></div>
+              <div class="field-mh" id="fm-hint">－</div>
+            </div>
           </div>
-          <div style="flex:1"></div>
-          <div id="extraBadge" style="font-size:13px;color:#0958d9;font-weight:600"></div>
         </div>
+
         <div class="card">
           <div class="ctitle">這把結果</div>
           <div class="rbtns">
-            <div class="rbtn" id="rb-win" onclick="selectResult('win')">胡牌<span class="rsub">填牌型台數</span></div>
+            <div class="rbtn" id="rb-win" onclick="selectResult('win')">胡牌<span class="rsub">點壘包選人</span></div>
             <div class="rbtn" id="rb-draw" onclick="selectResult('draw')">流局<span class="rsub">莊家連莊</span></div>
             <div class="rbtn" id="rb-end" onclick="selectResult('end')">結束這局<span class="rsub">提前終止</span></div>
           </div>
 
           <div id="win-panel" style="display:none">
             <div id="cont-banner" class="info-box" style="display:none"></div>
-            <span class="lbl">胡牌者</span>
-            <div id="winnerSel" class="sgrid"></div>
-            <span class="lbl">胡牌方式</span>
-            <div class="sgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:.75rem">
-              <div class="sbtn" id="wt-自摸" onclick="selWT('自摸')">自摸</div>
-              <div class="sbtn" id="wt-放槍" onclick="selWT('放槍')">放槍</div>
-            </div>
             <div id="zimo-box" class="zimo-box" style="display:none">
               <div class="zimo-lbl">門清狀態（影響自摸台數）</div>
               <div class="sbtn" id="mc-yes" onclick="toggleMC(true)">門清</div>
               <div class="sbtn" id="mc-no" onclick="toggleMC(false)">非門清</div>
               <div id="zimo-result" class="zimo-result" style="display:none"></div>
-            </div>
-            <div id="shooter-row" style="display:none">
-              <span class="lbl">放槍者</span>
-              <div id="shooterSel" class="sgrid"></div>
             </div>
             <span class="lbl">牌型</span>
             <div id="fanList"></div>
@@ -429,7 +475,15 @@ const FAN_SECTIONS=[
 ];
 const ALL_FANS = FAN_SECTIONS.flatMap(s => s.fans);
 
-let players=[], sessions=[], cur=null, seatSel=[];
+let selRate=null;
+function selectRate(base,tai){
+  selRate={base,tai};
+  [0,1,2].forEach(i=>document.getElementById('rp-'+i).className='rate-btn');
+  const idx=base===100?0:base===30?1:2;
+  document.getElementById('rp-'+idx).className='rate-btn sel';
+  const custom=document.getElementById('custom-rate');
+  custom.style.display=(base===0)?'block':'none';
+}
 let selResult=null, selWinner=null, selShooter=null, selWT_v=null, isMenQing=null, fanCounts={};
 
 function showSaving() {
@@ -490,10 +544,11 @@ function renderPlayers(){
 
 function renderGameForm(){
   document.getElementById('game-no-players').style.display=players.length<4?'block':'none';
+  const windLabels=['東','南','西','北'];
   document.getElementById('gamePlayers').innerHTML=players.map((p,i)=>{
     const idx=seatSel.indexOf(p.name);
     return`<div class="sbtn ${idx>=0?'sel':''}" onclick="toggleSeat('${p.name}')">
-      ${idx>=0?`<div style="font-size:10px;margin-bottom:2px;opacity:.85">${WINDS[idx]}家</div>`:''}${p.name}</div>`;
+      ${idx>=0?`<div style="font-size:10px;margin-bottom:2px;opacity:.85">${windLabels[idx]}家</div>`:''}${p.name}</div>`;
   }).join('');
 }
 function toggleSeat(name){
@@ -505,10 +560,11 @@ function toggleSeat(name){
 
 async function startSession(){
   if(seatSel.length!==4){alert('請選擇4位玩家');return}
-  const base=parseInt(document.getElementById('gameBase').value)||0;
-  const tai=parseInt(document.getElementById('gameTai').value)||0;
+  let base,tai;
+  if(selRate&&selRate.base!==0){base=selRate.base;tai=selRate.tai;}
+  else{base=parseInt(document.getElementById('gameBase').value)||0;tai=parseInt(document.getElementById('gameTai').value)||0;}
   const date=document.getElementById('gameDate').value||new Date().toISOString().slice(0,10);
-  if(!base||!tai){alert('請輸入底金和台金');return}
+  if(!base||!tai){alert('請選擇或輸入底金和台金');return}
   if(cur&&!confirm('目前有進行中的局，確定放棄並開新局？'))return;
   cur={id:Date.now(),date,base,tai,seats:seatSel.slice(),windIdx:0,dealerSeatIdx:0,contCount:0,hands:[],scores:Object.fromEntries(seatSel.map(n=>[n,0])),done:false,createdAt:Date.now()};
   showSaving();
@@ -516,6 +572,7 @@ async function startSession(){
   switchTab('play');renderPlay();
 }
 
+const SEAT_DIRS=['E','S','W','N'];
 function getWindLabel(s){return ROUNDS[Math.min(Math.floor(s.windIdx/4),3)]+WINDS[s.windIdx%4]}
 function getDealer(s){return s.seats[s.dealerSeatIdx%4]}
 
@@ -523,11 +580,72 @@ function renderPlay(){
   const main=document.getElementById('play-main');
   if(!cur){main.style.display='none';document.getElementById('play-none').style.display='block';return}
   document.getElementById('play-none').style.display='none';main.style.display='block';
-  document.getElementById('windBadge').textContent=getWindLabel(cur);
-  document.getElementById('windDetail').textContent='莊家：'+getDealer(cur);
-  const ex=contExtra(cur.contCount);
-  document.getElementById('extraBadge').textContent=cur.contCount>0?`連莊第${cur.contCount}把 · +${ex}台`:'';
+  renderField();
   renderSessionLog();
+}
+
+function renderField(){
+  if(!cur)return;
+  const dealer=getDealer(cur);
+  const round=ROUNDS[Math.min(Math.floor(cur.windIdx/4),3)];
+  const windChar=WINDS[cur.windIdx%4];
+  document.getElementById('fm-round').textContent=round+windChar;
+  document.getElementById('fm-cont').textContent=cur.contCount>0?`（連莊${cur.contCount}）`:'';
+
+  const dealerIdx=cur.dealerSeatIdx%4;
+  SEAT_DIRS.forEach((dir,di)=>{
+    const playerIdx=(dealerIdx+di)%4;
+    const name=cur.seats[playerIdx]||'';
+    const isDealer=(di===0);
+    document.getElementById('fn-'+dir).textContent=name;
+    const base=document.getElementById('fb-'+dir);
+    const role=document.getElementById('fr-'+dir);
+    if(selResult==='win'){
+      if(name===selWinner&&selWT_v==='自摸'){base.className='field-base f-winner';role.textContent='自摸'}
+      else if(name===selWinner){base.className='field-base f-winner';role.textContent='胡牌'}
+      else if(name===selShooter){base.className='field-base f-shooter';role.textContent='放槍'}
+      else if(isDealer){base.className='field-base f-dealer';role.textContent='莊'}
+      else{base.className='field-base f-idle';role.textContent=''}
+    } else {
+      if(isDealer){base.className='field-base f-dealer';role.textContent='莊'}
+      else{base.className='field-base f-idle';role.textContent=''}
+    }
+  });
+
+  let hint='－';
+  if(selResult==='win'){
+    if(!selWinner)hint='點胡牌者';
+    else if(selWT_v==='自摸')hint='自摸 ✓';
+    else if(!selShooter)hint='點放槍者';
+    else hint='完成 ✓';
+  } else if(selResult==='draw'){hint='流局'}
+  else if(selResult==='end'){hint='結束局'}
+  document.getElementById('fm-hint').textContent=hint;
+}
+
+function fieldClick(dir){
+  if(selResult!=='win')return;
+  const di=SEAT_DIRS.indexOf(dir);
+  if(di<0)return;
+  const dealerIdx=cur.dealerSeatIdx%4;
+  const playerIdx=(dealerIdx+di)%4;
+  const name=cur.seats[playerIdx]||'';
+  if(!name)return;
+
+  if(!selWinner){
+    selWinner=name;selShooter=null;selWT_v=null;isMenQing=null;
+    document.getElementById('win-panel').style.display='block';
+    renderWinPanel();
+    return;
+  }
+  if(name===selWinner){
+    if(selWT_v==='自摸'){selWT_v=null;isMenQing=null;}
+    else{selWT_v='自摸';selShooter=null;}
+    renderWinPanel();
+    return;
+  }
+  selShooter=name;selWT_v='放槍';
+  renderWinPanel();
 }
 
 function selectResult(r){
@@ -545,37 +663,34 @@ function selectResult(r){
     }else banner.style.display='none';
     selWinner=null;selShooter=null;selWT_v=null;isMenQing=null;fanCounts={};
     renderWinPanel();
+  } else {
+    selWinner=null;selShooter=null;selWT_v=null;isMenQing=null;
   }
   if(selResult==='draw'){
     const next=cur.contCount+1;
     document.getElementById('draw-notice').textContent=
       `流局：莊家 ${getDealer(cur)} 連莊，進入連莊第 ${next} 把，下把莊家參與時額外 +${contExtra(next)} 台`;
   }
+  renderField();
 }
 
 function renderWinPanel(){
   if(!cur)return;
-  document.getElementById('winnerSel').innerHTML=cur.seats.map(n=>
-    `<div class="sbtn ${selWinner===n?'sel':''}" onclick="pickW('${n}')">${n}</div>`).join('');
-  ['自摸','放槍'].forEach(t=>document.getElementById('wt-'+t).className='sbtn'+(selWT_v===t?' sel':''));
   const zimoBox=document.getElementById('zimo-box');
-  zimoBox.style.display=selWT_v==='自摸'?'grid':'none';
-  document.getElementById('shooter-row').style.display=selWT_v==='放槍'?'block':'none';
-  if(selWT_v==='自摸'){
+  const isZimoMode=selWT_v==='自摸';
+  zimoBox.style.display=isZimoMode?'grid':'none';
+  if(isZimoMode){
     document.getElementById('mc-yes').className='sbtn'+(isMenQing===true?' sel-green':'');
     document.getElementById('mc-no').className='sbtn'+(isMenQing===false?' sel':'');
     const resEl=document.getElementById('zimo-result');
     if(isMenQing===null){resEl.style.display='none'}
     else{resEl.style.display='block';resEl.textContent=zimoLabel()}
   }
-  document.getElementById('shooterSel').innerHTML=cur.seats.map(n=>
-    `<div class="sbtn ${selShooter===n?'sel':''} ${n===selWinner?'dis':''}" onclick="pickS('${n}')">${n}</div>`).join('');
+  renderField();
   renderFanList();
 }
-function pickW(n){selWinner=selWinner===n?null:n;if(selShooter===n)selShooter=null;renderWinPanel()}
-function selWT(t){selWT_v=selWT_v===t?null:t;if(t==='自摸')selShooter=null;if(t==='放槍')isMenQing=null;renderWinPanel()}
 function toggleMC(v){isMenQing=isMenQing===v?null:v;renderWinPanel()}
-function pickS(n){if(n===selWinner)return;selShooter=selShooter===n?null:n;renderWinPanel()}
+function selWT(t){selWT_v=selWT_v===t?null:t;if(t==='自摸')selShooter=null;if(t==='放槍')isMenQing=null;renderWinPanel()}
 
 function getBaseFan(){
   let t=zimoFan();
@@ -687,10 +802,10 @@ async function submitHand(){
     cur.hands.push({type:'draw',idx:cur.hands.length+1,wind:getWindLabel(cur),dealer:getDealer(cur),contCountAfter:cur.contCount+1});
     cur.contCount+=1;showSaving();await dbSaveCur();resetPlay();renderPlay();return;
   }
-  if(!selWinner){alert('請選擇胡牌玩家');return}
-  if(!selWT_v){alert('請選擇自摸或放槍');return}
+  if(!selWinner){alert('請在方位圖點選胡牌者');return}
+  if(!selWT_v){alert('請在方位圖點選放槍者（或點相同壘包切換為自摸）');return}
   if(selWT_v==='自摸'&&isMenQing===null){alert('請選擇門清或非門清');return}
-  if(selWT_v==='放槍'&&!selShooter){alert('請選擇放槍者');return}
+  if(selWT_v==='放槍'&&!selShooter){alert('請在方位圖點選放槍者');return}
   const baseFan=getBaseFan();
   const anyFanSelected=ALL_FANS.some(ft=>(fanCounts[ft.n]||0)>0)||(selWT_v==='自摸'&&isMenQing!==null);
   if(!anyFanSelected){alert('請至少選擇一種牌型');return}
@@ -763,6 +878,7 @@ function resetPlay(){
   selResult=null;selWinner=null;selShooter=null;selWT_v=null;isMenQing=null;fanCounts={};
   ['win','draw','end'].forEach(x=>document.getElementById('rb-'+x).className='rbtn');
   ['win-panel','draw-panel','end-panel'].forEach(id=>document.getElementById(id).style.display='none');
+  renderField();
 }
 
 function handHtml(h, lastHandIdx=null){
