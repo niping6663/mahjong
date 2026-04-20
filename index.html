@@ -6,13 +6,10 @@
 <title>麻將戰績記錄</title>
 
 <!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, deleteDoc, query, orderBy }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyCfB8L0XMNKJULn2QjkTCBttjGLsy0Wb-Y",
     authDomain: "twmj-13590.firebaseapp.com",
@@ -23,10 +20,10 @@
     measurementId: "G-F50V6DMPS6"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
 
   let currentUser = null;
 
@@ -34,18 +31,18 @@
     return `users/${currentUser.uid}/${path}`;
   }
 
-  // ── Auth ──────────────────────────────────────
   window.loginWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, provider);
+      await auth.signInWithPopup(provider);
     } catch(e) { alert('登入失敗：' + e.message); }
   };
+
   window.doSignOut = async () => {
-    await signOut(auth);
+    await auth.signOut();
     location.reload();
   };
 
-  onAuthStateChanged(auth, async user => {
+  auth.onAuthStateChanged(async user => {
     currentUser = user;
     if (user) {
       document.getElementById('auth-screen').style.display = 'none';
@@ -58,12 +55,11 @@
     }
   });
 
-  // ── Load all data ─────────────────────────────
   async function loadAll() {
     const [pSnap, sSnap, curSnap] = await Promise.all([
-      getDocs(collection(db, userCol('players'))),
-      getDocs(query(collection(db, userCol('sessions')), orderBy('createdAt', 'desc'))),
-      getDoc(doc(db, userCol('meta'), 'current'))
+      db.collection(userCol('players')).get(),
+      db.collection(userCol('sessions')).orderBy('createdAt','desc').get(),
+      db.collection(userCol('meta')).doc('current').get()
     ]);
     players = [];
     pSnap.forEach(d => players.push(d.data()));
@@ -72,33 +68,34 @@
     sessions = [];
     sSnap.forEach(d => sessions.push(d.data()));
 
-    cur = curSnap.exists() ? curSnap.data().session : null;
+    cur = curSnap.exists ? curSnap.data().session : null;
 
     renderPlayers(); renderGameForm(); renderPlay();
     if (document.getElementById('tab-log').classList.contains('active')) renderLog();
     if (document.getElementById('tab-rank').classList.contains('active')) renderRank();
   }
 
-  // ── Save helpers ──────────────────────────────
   window.dbSavePlayers = async () => {
-    for (const p of players) {
-      await setDoc(doc(db, userCol('players'), String(p.id)), p);
-    }
+    const batch = db.batch();
+    players.forEach(p => {
+      batch.set(db.collection(userCol('players')).doc(String(p.id)), p);
+    });
+    await batch.commit();
   };
   window.dbDeletePlayer = async (id) => {
-    await deleteDoc(doc(db, userCol('players'), String(id)));
+    await db.collection(userCol('players')).doc(String(id)).delete();
   };
   window.dbSaveCur = async () => {
-    await setDoc(doc(db, userCol('meta'), 'current'), { session: cur });
+    await db.collection(userCol('meta')).doc('current').set({ session: cur });
   };
   window.dbSaveSession = async (s) => {
-    await setDoc(doc(db, userCol('sessions'), String(s.id)), s);
+    await db.collection(userCol('sessions')).doc(String(s.id)).set(s);
   };
   window.dbDeleteSession = async (id) => {
-    await deleteDoc(doc(db, userCol('sessions'), String(id)));
+    await db.collection(userCol('sessions')).doc(String(id)).delete();
   };
   window.dbDeleteCur = async () => {
-    await setDoc(doc(db, userCol('meta'), 'current'), { session: null });
+    await db.collection(userCol('meta')).doc('current').set({ session: null });
   };
 </script>
 
