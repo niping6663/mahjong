@@ -13,18 +13,15 @@
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  // ════════════════════════════════════════════════
-  // 🔧 請將下面換成你的 Firebase 設定
-  // ════════════════════════════════════════════════
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCfB8L0XMNKJULn2QjkTCBttjGLsy0Wb-Y",
+    authDomain: "twmj-13590.firebaseapp.com",
+    projectId: "twmj-13590",
+    storageBucket: "twmj-13590.firebasestorage.app",
+    messagingSenderId: "696137938741",
+    appId: "1:696137938741:web:8bc39dd6c085e9fa6bfe7c",
+    measurementId: "G-F50V6DMPS6"
   };
-  // ════════════════════════════════════════════════
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
