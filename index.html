@@ -598,10 +598,8 @@ function renderField(){
   document.getElementById('fm-round').textContent=round+windChar;
   document.getElementById('fm-cont').textContent=cur.contCount>0?`（連莊${cur.contCount}）`:'';
 
-  const dealerIdx=cur.dealerSeatIdx%4;
   SEAT_DIRS.forEach((dir,di)=>{
-    const playerIdx=(dealerIdx+di)%4;
-    const name=cur.seats[playerIdx]||'';
+    const name=cur.seats[di]||'';
     const isDealer=(name===dealer);
     document.getElementById('fn-'+dir).textContent=name;
     const baseEl=document.getElementById('fb-'+dir);
@@ -633,9 +631,7 @@ function fieldClick(dir){
   if(selResult!=='win')return;
   const di=SEAT_DIRS.indexOf(dir);
   if(di<0)return;
-  const dealerIdx=cur.dealerSeatIdx%4;
-  const playerIdx=(dealerIdx+di)%4;
-  const name=cur.seats[playerIdx]||'';
+  const name=cur.seats[di]||'';
   if(!name)return;
 
   if(!selWinner){
@@ -712,6 +708,8 @@ function isDealerInvolved(winner,shooter,winType){
   return false;
 }
 function getDealerFan(winner,shooter,winType){
+  if(!cur)return 0;
+  if(cur.contCount>0&&isDealerInvolved(winner,shooter,winType))return 0;
   return isDealerInvolved(winner,shooter,winType)?1:0;
 }
 function getContFan(winner,shooter,winType){
@@ -896,8 +894,8 @@ function handHtml(h, lastHandIdx=null){
   const dc=Object.entries(h.deltas).map(([n,d])=>`<span class="dp ${d>0?'pos':d<0?'neg':'zer'}">${n} ${fmt(d)}</span>`).join('');
   const dn=h.isDealer?'<span class="chip cc">莊家胡，連莊</span>':'<span class="chip cg">閒家胡，換莊</span>';
   let fd=`${h.fans||'（無牌型）'} · 基礎${h.baseFan}台`;
-  if(h.dealerFan>0)fd+=` ＋莊家1台`;
-  if(h.contExtra>0)fd+=` ＋連莊第${h.contCount}把 +${h.contExtra}台`;
+  if(h.dealerFan>0&&!h.contExtra)fd+=` ＋莊家1台`;
+  if(h.contExtra>0)fd+=` ＋連莊第${h.contCount}把 +${h.contExtra}台（含莊家台）`;
   fd+=` ＝ 共${h.totalFan}台 · 每人${h.score}元`;
   return`<div class="li"><div class="li-top"><div><span style="font-weight:600">${h.winner} <span class="chip cw">胡牌</span></span> ${h.winType==='放槍'?`← <span class="chip cl">${h.shooter} 放槍</span>`:'<span class="chip cg">自摸</span>'} ${dn}${delBtn}</div><span class="chip cg">${h.wind} 第${h.idx}把</span></div><div class="li-meta">${fd}</div><div class="deltas">${dc}</div></div>`;
 }
